@@ -1153,14 +1153,11 @@ public class RemoteCanvas extends ImageView {
     public Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-            case Constants.DIALOG_X509_CERT:
-                validateX509Cert ((X509Certificate)msg.obj);
-                break;
-            case Constants.DIALOG_SSH_CERT:
-                initializeSshHostKey();
-                break;
-            }
+            if (msg.what == Constants.DIALOG_X509_CERT) {
+				validateX509Cert ((X509Certificate)msg.obj);
+			} else if (msg.what == Constants.DIALOG_SSH_CERT) {
+				initializeSshHostKey();
+			}
         }
     };
     

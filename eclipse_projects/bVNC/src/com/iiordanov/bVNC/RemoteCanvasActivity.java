@@ -997,78 +997,41 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         canvas.getKeyboard().setAfterMenu(true);
-        switch (item.getItemId()) {
-        case R.id.itemInfo:
-            canvas.showConnectionInfo();
-            return true;
-        case R.id.itemSpecialKeys:
-            showDialog(R.layout.metakey);
-            return true;
-        case R.id.itemColorMode:
-            selectColorModel();
-            return true;
-            // Following sets one of the scaling options
-        case R.id.itemZoomable:
-        case R.id.itemOneToOne:
-        case R.id.itemFitToScreen:
-            AbstractScaling.getById(item.getItemId()).setScaleTypeForActivity(this);
-            item.setChecked(true);
-            showPanningState(false);
-            return true;
-        case R.id.itemCenterMouse:
-            canvas.getPointer().warpMouse(canvas.absoluteXPosition + canvas.getVisibleWidth()  / 2,
+        int itemId = item.getItemId();
+		if (itemId == R.id.itemInfo) {
+			canvas.showConnectionInfo();
+			return true;
+		} else if (itemId == R.id.itemSpecialKeys) {
+			showDialog(R.layout.metakey);
+			return true;
+		} else if (itemId == R.id.itemColorMode) {
+			selectColorModel();
+			return true;
+		} else if (itemId == R.id.itemZoomable || itemId == R.id.itemOneToOne
+				|| itemId == R.id.itemFitToScreen) {
+			AbstractScaling.getById(item.getItemId()).setScaleTypeForActivity(this);
+			item.setChecked(true);
+			showPanningState(false);
+			return true;
+		} else if (itemId == R.id.itemCenterMouse) {
+			canvas.getPointer().warpMouse(canvas.absoluteXPosition + canvas.getVisibleWidth()  / 2,
                                              canvas.absoluteYPosition + canvas.getVisibleHeight() / 2);
-            return true;
-        case R.id.itemDisconnect:
-            canvas.closeConnection();
-            finish();
-            return true;
-        case R.id.itemEnterText:
-            showDialog(R.layout.entertext);
-            return true;
-        case R.id.itemCtrlAltDel:
-            canvas.getKeyboard().sendMetaKey(MetaKeyBean.keyCtrlAltDel);
-            return true;
-/*        case R.id.itemFollowMouse:
-            boolean newFollow = !connection.getFollowMouse();
-            item.setChecked(newFollow);
-            connection.setFollowMouse(newFollow);
-            if (newFollow) {
-                vncCanvas.panToMouse();
-            }
-            connection.save(database.getWritableDatabase());
-            database.close();
-            return true;
-        case R.id.itemFollowPan:
-            boolean newFollowPan = !connection.getFollowPan();
-            item.setChecked(newFollowPan);
-            connection.setFollowPan(newFollowPan);
-            connection.save(database.getWritableDatabase());
-            database.close();
-            return true;
- 
-        case R.id.itemArrowLeft:
-            vncCanvas.sendMetaKey(MetaKeyBean.keyArrowLeft);
-            return true;
-        case R.id.itemArrowUp:
-            vncCanvas.sendMetaKey(MetaKeyBean.keyArrowUp);
-            return true;
-        case R.id.itemArrowRight:
-            vncCanvas.sendMetaKey(MetaKeyBean.keyArrowRight);
-            return true;
-        case R.id.itemArrowDown:
-            vncCanvas.sendMetaKey(MetaKeyBean.keyArrowDown);
-            return true;
-*/
-        case R.id.itemSendKeyAgain:
-            sendSpecialKeyAgain();
-            return true;
-        // Disabling Manual/Wiki Menu item as the original does not correspond to this project anymore.
-        //case R.id.itemOpenDoc:
-        //    Utils.showDocumentation(this);
-        //    return true;
-        case R.id.itemExtraKeys:
-            if (connection.getExtraKeysToggleType() == Constants.EXTRA_KEYS_ON) {
+			return true;
+		} else if (itemId == R.id.itemDisconnect) {
+			canvas.closeConnection();
+			finish();
+			return true;
+		} else if (itemId == R.id.itemEnterText) {
+			showDialog(R.layout.entertext);
+			return true;
+		} else if (itemId == R.id.itemCtrlAltDel) {
+			canvas.getKeyboard().sendMetaKey(MetaKeyBean.keyCtrlAltDel);
+			return true;
+		} else if (itemId == R.id.itemSendKeyAgain) {
+			sendSpecialKeyAgain();
+			return true;
+		} else if (itemId == R.id.itemExtraKeys) {
+			if (connection.getExtraKeysToggleType() == Constants.EXTRA_KEYS_ON) {
                 connection.setExtraKeysToggleType(Constants.EXTRA_KEYS_OFF);
                 item.setTitle(R.string.extra_keys_enable);
                 setExtraKeysVisibility(View.GONE, false);
@@ -1078,16 +1041,16 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
                 setExtraKeysVisibility(View.VISIBLE, false);
                 extraKeysHidden = false;
             }
-            setKeyStowDrawableAndVisibility();
-            connection.save(database.getWritableDatabase());
-            database.close();
-            return true;
-        case R.id.itemHelpInputMode:
-            showDialog(R.id.itemHelpInputMode);
-            return true;
-        default:
-            AbstractInputHandler input = getInputHandlerById(item.getItemId());
-            if (input != null) {
+			setKeyStowDrawableAndVisibility();
+			connection.save(database.getWritableDatabase());
+			database.close();
+			return true;
+		} else if (itemId == R.id.itemHelpInputMode) {
+			showDialog(R.id.itemHelpInputMode);
+			return true;
+		} else {
+			AbstractInputHandler input = getInputHandlerById(item.getItemId());
+			if (input != null) {
                 inputHandler = input;
                 connection.setInputMode(input.getName());
                 if (input.getName().equals(SimulatedTouchpadInputHandler.TOUCHPAD_MODE)) {
@@ -1104,7 +1067,7 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
                 database.close();
                 return true;
             }
-        }
+		}
         return super.onOptionsItemSelected(item);
     }
 

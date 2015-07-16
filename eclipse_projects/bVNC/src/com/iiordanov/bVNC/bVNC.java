@@ -272,18 +272,17 @@ public class bVNC extends MainConfiguration {
      */
     @Override
     protected Dialog onCreateDialog(int id) {
-        switch (id) {
-        case R.layout.importexport:
-            return new ImportExportDialog(this);
-        case R.id.itemMainScreenHelp:
-            return createHelpDialog();
-        case R.layout.repeater_dialog:
-            return new RepeaterDialog(this);
-        case R.layout.auto_x_customize:
-            Dialog d = new AutoXCustomizeDialog(this);
-            d.setCancelable(false);
-            return d;
-        }
+        if (id == R.layout.importexport) {
+			return new ImportExportDialog(this);
+		} else if (id == R.id.itemMainScreenHelp) {
+			return createHelpDialog();
+		} else if (id == R.layout.repeater_dialog) {
+			return new RepeaterDialog(this);
+		} else if (id == R.layout.auto_x_customize) {
+			Dialog d = new AutoXCustomizeDialog(this);
+			d.setCancelable(false);
+			return d;
+		}
         return null;
     }
     
