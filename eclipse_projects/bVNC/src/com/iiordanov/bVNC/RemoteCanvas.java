@@ -67,24 +67,15 @@ import android.view.inputmethod.InputConnection;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.freerdp.freerdpcore.application.GlobalApp;
-import com.freerdp.freerdpcore.application.SessionState;
-import com.freerdp.freerdpcore.domain.BookmarkBase;
-import com.freerdp.freerdpcore.domain.ManualBookmark;
-import com.freerdp.freerdpcore.services.LibFreeRDP;
 import com.iiordanov.android.bc.BCFactory;
 import com.iiordanov.bVNC.input.RemoteKeyboard;
 import com.iiordanov.bVNC.input.RemotePointer;
-import com.iiordanov.bVNC.input.RemoteRdpKeyboard;
-import com.iiordanov.bVNC.input.RemoteRdpPointer;
-import com.iiordanov.bVNC.input.RemoteSpiceKeyboard;
-import com.iiordanov.bVNC.input.RemoteSpicePointer;
 import com.iiordanov.bVNC.input.RemoteVncKeyboard;
 import com.iiordanov.bVNC.input.RemoteVncPointer;
 
 import com.iiordanov.tigervnc.vncviewer.CConn;
 
-public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListener, LibFreeRDP.EventListener {
+public class RemoteCanvas extends ImageView {
     private final static String TAG = "RemoteCanvas";
     
     public AbstractScaling scaling;
@@ -101,8 +92,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
     public RfbConnectable rfbconn   = null;
     private RfbProto rfb            = null;
     private CConn cc                = null;
-    private RdpCommunicator rdpcomm = null;
-    private SpiceCommunicator spicecomm = null;
     private Socket sock             = null;
     
     boolean maintainConnection = true;
@@ -119,10 +108,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
     public AbstractBitmapData bitmapData;
     boolean useFull = false;
     boolean compact = false;
-    
-    // Keeps track of libFreeRDP instance. 
-    GlobalApp freeRdpApp = null;
-    SessionState session = null;
     
     // Progress dialog shown at connection time.
     ProgressDialog pd;
@@ -165,17 +150,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
     float displayDensity = 0;
     
     /*
-     * This flag indicates whether this is the RDP 'version' or not.
-     */
-    boolean isRdp = false;
-
-    /*
-     * This flag indicates whether this is the SPICE 'version' or not.
-     */
-    boolean isSpice = false;
-    boolean spiceUpdateReceived = false;
-    
-    /*
      * Variable used for BB workarounds.
      */
     boolean bb = false;
@@ -191,9 +165,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
         clipboard = (ClipboardManager)getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         
         decoder = new Decoder (this);
-        
-        isRdp   = getContext().getPackageName().contains("RDP");
-        isSpice = getContext().getPackageName().contains("SPICE");
         
         final Display display = ((Activity)context).getWindow().getWindowManager().getDefaultDisplay();
         displayWidth  = display.getWidth();
@@ -261,13 +232,8 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
                         }
                     }
                     
-                    if (isSpice) {
-                        startSpiceConnection();
-                    } else if (isRdp) {
-                        startRdpConnection();
-                    } else {
-                        startVncConnection();
-                    }
+                    startVncConnection();
+                    
                 } catch (Throwable e) {
                     if (maintainConnection) {
                         Log.e(TAG, e.toString());
@@ -308,100 +274,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
                 } catch (NullPointerException e){}
             }
         }
-    }
-    
-    
-    /**
-     * Starts a SPICE connection using libspice.
-     * @throws Exception
-     */
-    private void startSpiceConnection() throws Exception {
-        // Get the address and port (based on whether an SSH tunnel is being established or not).
-        String address = getAddress();
-        // To prevent an SSH tunnel being created when port or TLS port is not set, we only
-        // getPort when port/tport are positive.
-        int port = connection.getPort();
-        if (port > 0)
-            port = getPort(port);
-        
-        int tport = connection.getTlsPort();
-        if (tport > 0)
-            tport = getPort(tport);
-        
-        spicecomm = new SpiceCommunicator (getContext(), this, connection);
-        rfbconn = spicecomm;
-        pointer = new RemoteSpicePointer (rfbconn, RemoteCanvas.this, handler);
-        keyboard = new RemoteSpiceKeyboard (getResources(), spicecomm, RemoteCanvas.this, handler, connection.getLayoutMap());
-        spicecomm.setUIEventListener(RemoteCanvas.this);
-        spicecomm.setHandler(handler);
-        spicecomm.connect(address, Integer.toString(port), Integer.toString(tport),
-                            connection.getPassword(), connection.getCaCertPath(),
-                            connection.getCertSubject(), connection.getEnableSound());
-    }
-    
-    
-    /**
-     * Starts an RDP connection using the FreeRDP library.
-     * @throws Exception
-     */
-    private void startRdpConnection() throws Exception {
-        // Get the address and port (based on whether an SSH tunnel is being established or not).
-        String address = getAddress();
-        int rdpPort = getPort(connection.getPort());
-        
-        // This is necessary because it initializes a synchronizedMap referenced later.
-        freeRdpApp = new GlobalApp();
-        
-        // Create a manual bookmark and populate it from settings.
-        BookmarkBase bookmark = new ManualBookmark();
-        bookmark.<ManualBookmark>get().setLabel(connection.getNickname());
-        bookmark.<ManualBookmark>get().setHostname(address);
-        bookmark.<ManualBookmark>get().setPort(rdpPort);
-        bookmark.<ManualBookmark>get().setUsername(connection.getUserName());
-        bookmark.<ManualBookmark>get().setDomain(connection.getRdpDomain());
-        bookmark.<ManualBookmark>get().setPassword(connection.getPassword());
-        
-        // Create a session based on the bookmark
-        session = GlobalApp.createSession(bookmark);
-        
-        // Set a writable data directory
-        LibFreeRDP.setDataDirectory(session.getInstance(), getContext().getFilesDir().toString());
-        
-        // Set screen settings to native res if instructed to, or if height or width are too small.
-        BookmarkBase.ScreenSettings screenSettings = session.getBookmark().getActiveScreenSettings();
-        waitUntilInflated();
-        int remoteWidth  = getRemoteWidth(getWidth(), getHeight());
-        int remoteHeight = getRemoteHeight(getWidth(), getHeight());
-        screenSettings.setWidth(remoteWidth);
-        screenSettings.setHeight(remoteHeight);
-        screenSettings.setColors(16);
-        
-        // Set performance flags.
-        BookmarkBase.PerformanceFlags performanceFlags = session.getBookmark().getPerformanceFlags();
-        performanceFlags.setRemoteFX(false);
-        performanceFlags.setWallpaper(connection.getDesktopBackground());
-        performanceFlags.setFontSmoothing(connection.getFontSmoothing());
-        performanceFlags.setDesktopComposition(connection.getDesktopComposition());
-        performanceFlags.setFullWindowDrag(connection.getWindowContents());
-        performanceFlags.setMenuAnimations(connection.getMenuAnimation());
-        performanceFlags.setTheming(connection.getVisualStyles());
-        
-        BookmarkBase.AdvancedSettings advancedSettings = session.getBookmark().getAdvancedSettings();
-        advancedSettings.setRedirectSDCard(connection.getRedirectSdCard());
-        advancedSettings.setConsoleMode(connection.getConsoleMode());
-        advancedSettings.setRedirectSound(connection.getRemoteSoundType());
-        advancedSettings.setRedirectMicrophone(connection.getEnableRecording());
-        
-        rdpcomm = new RdpCommunicator (session);
-        rfbconn = rdpcomm;
-        pointer = new RemoteRdpPointer (rfbconn, RemoteCanvas.this, handler);
-        keyboard = new RemoteRdpKeyboard (rfbconn, RemoteCanvas.this, handler);
-        
-        session.setUIEventListener(RemoteCanvas.this);
-        LibFreeRDP.setEventListener(RemoteCanvas.this);
-        
-        session.connect();
-        pd.dismiss();
     }
     
     
@@ -640,7 +512,7 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
                     bitmapData=new FullBufferBitmapData(rfbconn, this, capacity);
                     android.util.Log.i(TAG, "Using FullBufferBitmapData.");
                 } else {
-                    bitmapData=new CompactBitmapData(rfbconn, this, isSpice);
+                    bitmapData=new CompactBitmapData(rfbconn, this, false /*isSpice*/);
                     android.util.Log.i(TAG, "Using CompactBufferBitmapData.");
                 }
             } catch (Throwable e) { // If despite our efforts we fail to allocate memory, use LBBM.
@@ -1273,154 +1145,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
         }
     }
     
-    //////////////////////////////////////////////////////////////////////////////////
-    //  Implementation of LibFreeRDP.EventListener.  Through the functions implemented
-    //  below, FreeRDP communicates connection state information.
-    //////////////////////////////////////////////////////////////////////////////////
-    
-    @Override
-    public void OnConnectionSuccess(int instance) {
-        rdpcomm.setIsInNormalProtocol(true);
-        Log.v(TAG, "OnConnectionSuccess");
-    }
-    
-    @Override
-    public void OnConnectionFailure(int instance) {
-        rdpcomm.setIsInNormalProtocol(false);
-        Log.v(TAG, "OnConnectionFailure");
-        if (maintainConnection)
-            handler.sendEmptyMessage(Constants.RDP_UNABLE_TO_CONNECT);
-    }
-    
-    @Override
-    public void OnDisconnecting(int instance) {
-        rdpcomm.setIsInNormalProtocol(false);
-        Log.v(TAG, "OnDisconnecting");
-        if (maintainConnection)
-            handler.sendEmptyMessage(Constants.RDP_CONNECT_FAILURE);
-    }
-    
-    @Override
-    public void OnDisconnected(int instance) {
-        rdpcomm.setIsInNormalProtocol(false);
-        Log.v(TAG, "OnDisconnected");
-        if (maintainConnection)
-            handler.sendEmptyMessage(Constants.RDP_CONNECT_FAILURE);
-    }
-    
-    //////////////////////////////////////////////////////////////////////////////////
-    //  Implementation of LibFreeRDP.UIEventListener. Through the functions implemented
-    //  below libspice and FreeRDP communicate remote desktop size and updates.
-    //////////////////////////////////////////////////////////////////////////////////
-    
-    @Override
-    public void OnSettingsChanged(int width, int height, int bpp) {
-        android.util.Log.e(TAG, "onSettingsChanged called, wxh: " + width + "x" + height);
-        
-        // If this is aSPICE, we need to initialize the communicator and remote keyboard and mouse now.
-        if (isSpice) {
-            spicecomm.setFramebufferWidth(width);
-            spicecomm.setFramebufferHeight(height);
-            waitUntilInflated();
-            int remoteWidth  = getRemoteWidth(getWidth(), getHeight());
-            int remoteHeight = getRemoteHeight(getWidth(), getHeight());
-            if (width != remoteWidth || height != remoteHeight) {
-                android.util.Log.e(TAG, "Requesting new res: " + remoteWidth + "x" + remoteHeight);
-                rfbconn.requestResolution(remoteWidth, remoteHeight);
-            }
-        }
-        
-        disposeDrawable ();
-        try {
-            // TODO: Use frameBufferSizeChanged instead.
-            bitmapData = new CompactBitmapData(rfbconn, this, isSpice);
-        } catch (Throwable e) {
-            showFatalMessageAndQuit (getContext().getString(R.string.error_out_of_memory));
-            return;
-        }
-        android.util.Log.i(TAG, "Using CompactBufferBitmapData.");
-        
-        // TODO: In RDP mode, pointer is not visible, so we use a soft cursor.
-        initializeSoftCursor();
-        
-        // Set the drawable for the canvas, now that we have it (re)initialized.
-        handler.post(drawableSetter);
-        handler.post(setModes);
-        handler.post(desktopInfo);
-        
-        // If this is aSPICE, set the new bitmap in the native layer.
-        if (isSpice) {
-            spiceUpdateReceived = true;
-            rfbconn.setIsInNormalProtocol(true);
-            handler.sendEmptyMessage(Constants.SPICE_CONNECT_SUCCESS);
-        }
-    }
-
-    @Override
-    public boolean OnAuthenticate(StringBuilder username, StringBuilder domain, StringBuilder password) {
-        android.util.Log.e(TAG, "onAuthenticate called.");
-        if (maintainConnection)
-            handler.sendEmptyMessage(Constants.RDP_AUTH_FAILED);
-        return false;
-    }
-
-    @Override
-    public boolean OnVerifiyCertificate(String subject, String issuer, String fingerprint) {
-        android.util.Log.e(TAG, "OnVerifiyCertificate called.");
-        
-        // Send a message containing the certificate to our handler.
-        Message m = new Message();
-        m.setTarget(handler);
-        m.what = Constants.DIALOG_RDP_CERT;
-        Bundle strings = new Bundle();
-        strings.putString("subject", subject);
-        strings.putString("issuer", issuer);
-        strings.putString("fingerprint", fingerprint);
-        m.obj = strings;
-        handler.sendMessage(m);
-
-        // Block while user decides whether to accept certificate or not.
-        // The activity ends if the user taps "No", so we block indefinitely here.
-        synchronized (RemoteCanvas.this) {
-            while (!certificateAccepted) {
-                try {
-                    RemoteCanvas.this.wait();
-                } catch (InterruptedException e) { e.printStackTrace(); }
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    public void OnGraphicsUpdate(int x, int y, int width, int height) {
-        //android.util.Log.e(TAG, "OnGraphicsUpdate called: " + x +", " + y + " + " + width + "x" + height );
-        if (isRdp) {
-            if (bitmapData != null && bitmapData.mbitmap != null && session != null) {
-                synchronized (bitmapData.mbitmap) {
-                    LibFreeRDP.updateGraphics(session.getInstance(), bitmapData.mbitmap, x, y, width, height);
-                }
-            }
-        } else {
-            synchronized (bitmapData.mbitmap) {
-                spicecomm.UpdateBitmap(bitmapData.mbitmap, x, y, width, height);
-            }
-        }
-        
-        reDraw(x, y, width, height);
-    }
-
-    @Override
-    public void OnGraphicsResize(int width, int height, int bpp) {
-        android.util.Log.e(TAG, "OnGraphicsResize called.");
-        OnSettingsChanged(width, height, bpp);
-    }
-    
-    @Override
-    public void OnRemoteClipboardChanged(String data) {
-        serverJustCutText = true;
-        setClipboardText(data);
-    }
 
     /** 
      * Handler for the dialogs that display the x509/RDP/SSH key signatures to the user.
@@ -1435,36 +1159,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
                 break;
             case Constants.DIALOG_SSH_CERT:
                 initializeSshHostKey();
-                break;
-            case Constants.DIALOG_RDP_CERT:
-                Bundle s = (Bundle)msg.obj;
-                validateRdpCert (s.getString("subject"), s.getString("issuer"), s.getString("fingerprint"));
-                break;
-            case Constants.SPICE_CONNECT_SUCCESS:
-                if (pd != null && pd.isShowing()) {
-                    pd.dismiss();
-                }
-                break;
-            case Constants.SPICE_CONNECT_FAILURE:
-                if (maintainConnection) {
-                    if (pd != null && pd.isShowing()) {
-                        pd.dismiss();
-                    }
-                    if (!spiceUpdateReceived) {
-                        showFatalMessageAndQuit(getContext().getString(R.string.error_spice_unable_to_connect));
-                    } else {
-                        showFatalMessageAndQuit(getContext().getString(R.string.error_connection_interrupted));
-                    }
-                }
-                break;
-            case Constants.RDP_CONNECT_FAILURE:
-                showFatalMessageAndQuit(getContext().getString(R.string.error_rdp_connection_failed));
-                break;
-            case Constants.RDP_UNABLE_TO_CONNECT:
-                showFatalMessageAndQuit(getContext().getString(R.string.error_rdp_unable_to_connect));
-                break;
-            case Constants.RDP_AUTH_FAILED:
-                showFatalMessageAndQuit(getContext().getString(R.string.error_rdp_authentication_failed));
                 break;
             }
         }
@@ -1591,44 +1285,6 @@ public class RemoteCanvas extends ImageView implements LibFreeRDP.UIEventListene
     
     public boolean isCertificateAccepted() {
         return certificateAccepted;
-    }
-    
-    /**
-     * Permits the user to validate an RDP certificate.
-     * @param subject
-     * @param issuer
-     * @param fingerprint
-     */
-    private void validateRdpCert (String subject, String issuer, final String fingerprint) {
-        // Since LibFreeRDP handles saving accepted certificates, if we ever get here, we must
-        // present the user with a query whether to accept the certificate or not.
-
-        // Show a dialog with the key signature for approval.
-        DialogInterface.OnClickListener signatureNo = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // We were told not to continue, so stop the activity
-                closeConnection();
-                ((Activity) getContext()).finish();
-            }
-        };
-        DialogInterface.OnClickListener signatureYes = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Indicate the certificate was accepted.
-                certificateAccepted = true;
-                synchronized (RemoteCanvas.this) {
-                    RemoteCanvas.this.notifyAll();
-                }
-            }
-        };
-        Utils.showYesNoPrompt(getContext(), getContext().getString(R.string.info_continue_connecting) + connection.getAddress () + "?",
-                getContext().getString(R.string.info_cert_signatures) +
-                        "\nSubject:      " + subject +
-                        "\nIssuer:       " + issuer +
-                        "\nFingerprint:  " + fingerprint + 
-                        getContext().getString(R.string.info_cert_signatures_identical),
-                        signatureYes, signatureNo);
     }
     
     
