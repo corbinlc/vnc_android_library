@@ -911,7 +911,6 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
      * @return
      */
     AbstractInputHandler getInputHandlerById(int id) {
-        boolean isRdp = getPackageName().contains("RDP");
 
         if (inputModeHandlers == null) {
             inputModeHandlers = new AbstractInputHandler[inputModeIds.length];
@@ -932,13 +931,13 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
 					} else 
 */
                 	if (id == R.id.itemInputTouchPanZoomMouse) {
-						inputModeHandlers[i] = new TouchMouseSwipePanInputHandler(this, canvas, isRdp);
+						inputModeHandlers[i] = new TouchMouseSwipePanInputHandler(this, canvas, false /*isRdp*/);
 					} else if (id == R.id.itemInputDragPanZoomMouse) {
-						inputModeHandlers[i] = new TouchMouseDragPanInputHandler(this, canvas, isRdp);
+						inputModeHandlers[i] = new TouchMouseDragPanInputHandler(this, canvas, false /*isRdp*/);
 					} else if (id == R.id.itemInputTouchpad) {
-						inputModeHandlers[i] = new SimulatedTouchpadInputHandler(this, canvas, isRdp);
+						inputModeHandlers[i] = new SimulatedTouchpadInputHandler(this, canvas, false /*isRdp*/);
 					} else if (id == R.id.itemInputSingleHanded) {
-						inputModeHandlers[i] = new SingleHandedInputHandler(this, canvas, isRdp);
+						inputModeHandlers[i] = new SingleHandedInputHandler(this, canvas, false /*isRdp*/);
 					}
                 }
                 return inputModeHandlers[i];
