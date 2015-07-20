@@ -616,11 +616,9 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
      * Resets the state and image of the on-screen keys.
      */
     private void resetOnScreenKeys (int keyCode) {
-        // Do not reset on-screen keys if keycode is SHIFT.
-        switch (keyCode) {
-        case KeyEvent.KEYCODE_SHIFT_LEFT:
-        case KeyEvent.KEYCODE_SHIFT_RIGHT: return;
-        }
+        if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) {
+			return;
+		}
         if (!keyCtrlToggled) {
             keyCtrl.setImageResource(R.drawable.ctrloff);
             canvas.getKeyboard().onScreenCtrlOff();
@@ -714,12 +712,11 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
      */
     @Override
     protected Dialog onCreateDialog(int id) {
-        switch (id) {
-        case R.layout.entertext:
-            return new EnterTextDialog(this);
-        case R.id.itemHelpInputMode:
-            return createHelpDialog ();
-        }
+        if (id == R.layout.entertext) {
+			return new EnterTextDialog(this);
+		} else if (id == R.id.itemHelpInputMode) {
+			return createHelpDialog ();
+		}
         
         // Default to meta key dialog
         return new MetaKeyDialog(this);
@@ -922,38 +919,27 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
         for (int i = 0; i < inputModeIds.length; ++i) {
             if (inputModeIds[i] == id) {
                 if (inputModeHandlers[i] == null) {
-                    switch (id) {
-/*                    case R.id.itemInputFitToScreen:
-                        inputModeHandlers[i] = new FitToScreenMode();
-                        break;
-                    case R.id.itemInputPan:
-                        inputModeHandlers[i] = new PanMode();
-                        break;
-                    case R.id.itemInputTouchPanTrackballMouse:
-                        inputModeHandlers[i] = new TouchPanTrackballMouse();
-                        break;
-                    case R.id.itemInputMouse:
-                        inputModeHandlers[i] = new MouseMode();
-                        break; 
-
-                    case R.id.itemInputDPadPanTouchMouse:
-                        inputModeHandlers[i] = new DPadPanTouchMouseMode();
-                        break;
- */                    
-                    case R.id.itemInputTouchPanZoomMouse:
-                        inputModeHandlers[i] = new TouchMouseSwipePanInputHandler(this, canvas, isRdp);
-                        break;
-                    case R.id.itemInputDragPanZoomMouse:
-                        inputModeHandlers[i] = new TouchMouseDragPanInputHandler(this, canvas, isRdp);
-                        break;
-                    case R.id.itemInputTouchpad:
-                        inputModeHandlers[i] = new SimulatedTouchpadInputHandler(this, canvas, isRdp);
-                        break;
-                    case R.id.itemInputSingleHanded:
-                        inputModeHandlers[i] = new SingleHandedInputHandler(this, canvas, isRdp);
-                        break;
-
-                    }
+/*                    if (id == R.id.itemInputFitToScreen) {
+						inputModeHandlers[i] = new FitToScreenMode();
+					} else if (id == R.id.itemInputPan) {
+						inputModeHandlers[i] = new PanMode();
+					} else if (id == R.id.itemInputTouchPanTrackballMouse) {
+						inputModeHandlers[i] = new TouchPanTrackballMouse();
+					} else if (id == R.id.itemInputMouse) {
+						inputModeHandlers[i] = new MouseMode();
+					} else if (id == R.id.itemInputDPadPanTouchMouse) {
+						inputModeHandlers[i] = new DPadPanTouchMouseMode();
+					} else 
+*/
+                	if (id == R.id.itemInputTouchPanZoomMouse) {
+						inputModeHandlers[i] = new TouchMouseSwipePanInputHandler(this, canvas, isRdp);
+					} else if (id == R.id.itemInputDragPanZoomMouse) {
+						inputModeHandlers[i] = new TouchMouseDragPanInputHandler(this, canvas, isRdp);
+					} else if (id == R.id.itemInputTouchpad) {
+						inputModeHandlers[i] = new SimulatedTouchpadInputHandler(this, canvas, isRdp);
+					} else if (id == R.id.itemInputSingleHanded) {
+						inputModeHandlers[i] = new SingleHandedInputHandler(this, canvas, isRdp);
+					}
                 }
                 return inputModeHandlers[i];
             }

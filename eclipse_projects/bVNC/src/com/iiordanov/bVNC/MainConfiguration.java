@@ -292,18 +292,16 @@ public abstract class MainConfiguration extends FragmentActivity implements GetT
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
-        case R.id.itemSaveAsCopy :
-            if (selected.getNickname().equals(textNickname.getText().toString()))
+        int itemId = item.getItemId();
+		if (itemId == R.id.itemSaveAsCopy) {
+			if (selected.getNickname().equals(textNickname.getText().toString()))
                 textNickname.setText("Copy of "+selected.getNickname());
-            updateSelectedFromView();
-            selected.set_Id(0);
-            selected.saveAndWriteRecent(false);
-            arriveOnPage();
-            break;
-        case R.id.itemDeleteConnection :
-            Utils.showYesNoPrompt(this, "Delete?", "Delete " + selected.getNickname() + "?",
+			updateSelectedFromView();
+			selected.set_Id(0);
+			selected.saveAndWriteRecent(false);
+			arriveOnPage();
+		} else if (itemId == R.id.itemDeleteConnection) {
+			Utils.showYesNoPrompt(this, "Delete?", "Delete " + selected.getNickname() + "?",
                     new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int i)
@@ -313,15 +311,12 @@ public abstract class MainConfiguration extends FragmentActivity implements GetT
                     arriveOnPage();
                 }
             }, null);
-            break;
-        case R.id.itemMainScreenHelp:
-            showDialog(R.id.itemMainScreenHelp);
-            break;
-        case R.id.itemExportImport:
-            showDialog(R.layout.importexport);
-            break;
-        case R.id.itemMasterPassword:
-            if (Utils.isFree(this)) {
+		} else if (itemId == R.id.itemMainScreenHelp) {
+			showDialog(R.id.itemMainScreenHelp);
+		} else if (itemId == R.id.itemExportImport) {
+			showDialog(R.layout.importexport);
+		} else if (itemId == R.id.itemMasterPassword) {
+			if (Utils.isFree(this)) {
                 IntroTextDialog.showIntroTextIfNecessary(this, database, true);
             } else {
                 togglingMasterPassword = true;
@@ -331,13 +326,10 @@ public abstract class MainConfiguration extends FragmentActivity implements GetT
                     showGetTextFragment(getNewPassword);
                 }
             }
-            break;
-            
-        // Disabling Manual/Wiki Menu item as the original does not correspond to this project anymore.
-        //case R.id.itemOpenDoc :
-        //    Utils.showDocumentation(this);
-        //    break;
-        }
+	    // Disabling Manual/Wiki Menu item as the original does not correspond to this project anymore.
+		//} else if (itemId == R.id.itemOpenDoc) {
+	    //    Utils.showDocumentation(this);
+		}
         return true;
     }
     
