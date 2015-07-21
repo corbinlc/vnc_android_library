@@ -137,10 +137,15 @@ public class RemoteCanvasActivity extends Activity implements OnKeyListener {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        Utils.showMenu(this);
-        initialize();
-        if (connection != null && connection.isReadyForConnection())
-        	continueConnecting();
+        try {
+        	Utils.showMenu(this);
+        	initialize();
+        	if (connection != null && connection.isReadyForConnection())
+        		continueConnecting();
+        }
+        catch (Exception e) {
+        	Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
     
     void initialize () {
