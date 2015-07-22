@@ -7,6 +7,8 @@
     
     <string name="connect">Connect</string>
     <string name="ip_hint">IP address</string>
+    <string name="pw_hint">Password (Optional)</string>
     <string name="localhost">Localhost</string>
 
+    <string name="teradyneWebLink">www.teradyne.com</string>
 </resources>

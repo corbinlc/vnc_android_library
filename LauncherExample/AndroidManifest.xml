@@ -5,6 +5,8 @@
     android:versionName="1.0" >
 
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="21" />
+    <!-- These permissions are required for using the bVNC library as it connects
+    	either over the Internet or at least over a network -->
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
@@ -14,33 +16,33 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <!-- Splash Screen -->
         <activity
-            android:name=".LauncherActivity"
-            android:label="@string/app_name" >
+            android:name=".SplashScreen"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
         </activity>
+        <!-- Main Activity -->
         <activity
+            android:name=".LauncherActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <!-- This activity is required to use the library as it tells your app
+        	what to launch when it wants a vnc session -->
+        <!-- VNC Library Activity -->
+        <activity
+            android:exported="false"
             android:screenOrientation="unspecified"
             android:configChanges="orientation|keyboardHidden|keyboard"
             android:name="com.iiordanov.bVNC.RemoteCanvasActivity"
             android:windowSoftInputMode="stateHidden|adjustResize">
-            <intent-filter>
-               <action android:name="android.intent.action.VIEW"></action>
-            </intent-filter>
-            <intent-filter>
-               <action android:name="android.intent.action.VIEW" />
-               <category android:name="android.intent.category.DEFAULT" />
-               <data android:scheme="vnc" />
-            </intent-filter>
-            <intent-filter>
-               <action android:name="android.intent.action.VIEW" />
-               <category android:name="android.intent.category.DEFAULT" />
-               <data android:mimeType="application/vnd.vnc" />
-            </intent-filter>
         </activity>
     </application>
 
