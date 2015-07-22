@@ -4,5 +4,9 @@
     <string name="app_name">LauncherExample</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    
+    <string name="connect">Connect</string>
+    <string name="ip_hint">IP address</string>
+    <string name="localhost">Localhost</string>
 
 </resources>

@@ -8,10 +8,43 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.vnc.android.launcherexample.LauncherActivity" >
 
+    <EditText 
+        android:id="@+id/ipText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="100dp"
+        android:layout_marginEnd="100dp"
+        android:hint="@string/ip_hint" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_world"
-        android:onClick="launchbVNC" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="launchbVNC"
+        android:text="@string/connect" />
+    
+    <TextView
+        android:layout_below="@id/ipText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginRight="100dp"
+        android:layout_marginEnd="100dp"
+        android:textSize="8pt"
+        android:text="@string/localhost" />
+
+    <Button
+        android:layout_below="@id/ipText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="launchLocalhost"
+        android:text="@string/connect" />
 
 </RelativeLayout>

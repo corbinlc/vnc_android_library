@@ -1,24 +1,34 @@
 package com.vnc.android.launcherexample;
 
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.EditText;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 
 public class LauncherActivity extends ActionBarActivity {
 
 	public void launchbVNC(View view) {
-		Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("vnc://172.17.161.71:5900/"));
+		EditText editText = (EditText)findViewById(R.id.ipText);
+		Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("vnc://"+editText.getText().toString()+":5900/"));
 		try {
 			startActivity(intent);
 		} catch (ActivityNotFoundException e) {
-			Toast.makeText(this, "No Activity", Toast.LENGTH_LONG).show();
+			Log.e("Missing Activity", e.getMessage());
+		}
+	}
+	
+	public void launchLocalhost(View view) {
+		Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("vnc://localhost:5900/"));
+		try {
+			startActivity(intent);
+		} catch (ActivityNotFoundException e) {
+			Log.e("Missing Activity", e.getMessage());
 		}
 	}
 		
