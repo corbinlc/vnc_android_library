@@ -13,9 +13,11 @@ import android.net.Uri;
 
 public class LauncherActivity extends ActionBarActivity {
 
+	// Launches the Remote Viewer from bVNC to connect to the given ip address
 	public void launchbVNC(View view) {
 		EditText editText = (EditText)findViewById(R.id.ipText);
-		Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("vnc://"+editText.getText().toString()+":5900/"));
+		Intent intent = new Intent(this, com.iiordanov.bVNC.RemoteCanvasActivity.class);
+		intent.setData(Uri.parse("vnc://"+editText.getText().toString()+":5900/"));
 		try {
 			startActivity(intent);
 		} catch (ActivityNotFoundException e) {
@@ -23,8 +25,10 @@ public class LauncherActivity extends ActionBarActivity {
 		}
 	}
 	
+	// Launches the Remote Viewer from bVNC to connect to localhost
 	public void launchLocalhost(View view) {
-		Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("vnc://localhost:5900/"));
+		Intent intent = new Intent(this, com.iiordanov.bVNC.RemoteCanvasActivity.class);
+		intent.setData(Uri.parse("vnc://localhost:5900/"));
 		try {
 			startActivity(intent);
 		} catch (ActivityNotFoundException e) {
@@ -35,6 +39,16 @@ public class LauncherActivity extends ActionBarActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		/*
+		 *  Comment this in to automatically start the VNC connection upon
+		 *  creation of this activity. Note the IP is hard-coded at this
+		 *  point, but could easily be fed in from some outside source 
+		 *  or calling intent
+		 *  
+		Intent intent = new Intent(this, com.iiordanov.bVNC.RemoteCanvasActivity.class);
+		intent.setData(Uri.parse("vnc://172.17.161.71:5900/"));
+		startActivity(intent);
+		 */
 		setContentView(R.layout.activity_launcher);
 	}
 
