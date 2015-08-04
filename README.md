@@ -34,7 +34,7 @@ git clone https://github.com/drelleum/vnc_android_library
    * Android->Existing Android Code into Workspace  
    * Browse to the location of your Android SDK, selecting the support folder under $SDK/extras/android/support as the root  
    * Deselect all the projects except v7/appcompat  
-   * Check the box labeled "copy porject to workspace"  
+   * Check the box labeled "copy project to workspace"  
    * Click Finish to import the support library
 
 5. You Eclipse workspace now contains the bVNC android library.  

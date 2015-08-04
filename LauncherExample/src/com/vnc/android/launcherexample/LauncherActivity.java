@@ -58,12 +58,12 @@ public class LauncherActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_launcher);
 	}
 
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.launcher, menu);
 		return true;
-	}
+	}*/
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

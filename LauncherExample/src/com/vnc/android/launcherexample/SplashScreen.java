@@ -18,7 +18,7 @@ public class SplashScreen extends Activity {
 		new Handler().postDelayed(new Runnable() {
 			
 			/*
-			 * Showing splash screen witha timer
+			 * Showing splash screen with a timer
 			 */
 			
 			@Override
