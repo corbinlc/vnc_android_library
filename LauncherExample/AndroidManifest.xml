@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="3" android:targetSdkVersion="22" />
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="22" />
     <!-- These permissions are required for using the bVNC library as it connects
     	either over the Internet or at least over a network -->
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
